@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poisson Distribution | SDV Lab</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .poisson-page { max-width: 1100px; margin: 25px auto; padding: 20px; }
+    .poisson-page .panel {
+      background: var(--card-bg, #fff);
+      color: var(--text-color, #222);
+      padding: 20px; margin: 18px 0;
+      border-radius: 12px; border: 1px solid #ddd;
+    }
+    .poisson-page .controls {
+      display: flex; flex-wrap: wrap; gap: 14px; align-items: end;
+    }
+    .poisson-page label { display: block; margin-bottom: 6px; font-weight: 600; }
+    .poisson-page input {
+      padding: 10px; max-width: 180px; width: 100%;
+      border: 1px solid #aaa; border-radius: 6px;
+    }
+    .poisson-page button {
+      padding: 10px 16px; border: 0; border-radius: 6px;
+      cursor: pointer; background: #3659c9; color: white;
+    }
+    .poisson-page .stats {
+      display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr));
+      gap: 12px;
+    }
+    .poisson-page .stat {
+      padding: 15px; border: 1px solid #ddd; border-radius: 8px;
+    }
+    .poisson-page .stat strong { display: block; margin-top: 8px; font-size: 1.25rem; }
+    .poisson-page .result { margin-top: 14px; font-weight: 600; }
+    .poisson-page .chart-wrap { height: 360px; position: relative; }
+    .poisson-page .note { line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="binomial.html">Binomial</a>
+      <a href="poisson.html">Poisson</a>
+      <a href="geometric.html">Geometric</a>
+    </nav>
+  </header>
+
+  <main class="poisson-page">
+    <h1>Poisson Distribution</h1>
+    <p>Explore the probability of observing a number of events in a fixed interval.</p>
+
+    <section class="panel">
+      <h2>Distribution Parameters</h2>
+      <div class="controls">
+        <div>
+          <label for="lambda">Average event rate (λ)</label>
+          <input id="lambda" type="number" min="0" max="30"
+                 step="0.1" value="6">
+        </div>
+        <button id="updateButton" type="button">Update Distribution</button>
+      </div>
+      <p id="parameterMessage" class="result" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Statistics</h2>
+      <div class="stats">
+        <div class="stat">Mean (λ)<strong id="mean">6</strong></div>
+        <div class="stat">Variance (λ)<strong id="variance">6</strong></div>
+        <div class="stat">Standard deviation<strong id="sd">2.4495</strong></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>PMF Calculator</h2>
+      <p>Calculate the probability of exactly k events.</p>
+      <div class="controls">
+        <div>
+          <label for="pmfK">Number of events (k)</label>
+          <input id="pmfK" type="number" min="0" step="1" value="8">
+        </div>
+        <button id="pmfButton" type="button">Calculate PMF</button>
+      </div>
+      <p id="pmfResult" class="result" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2>CDF Calculator</h2>
+      <p>Calculate the probability of at most k events.</p>
+      <div class="controls">
+        <div>
+          <label for="cdfK">Number of events (k)</label>
+          <input id="cdfK" type="number" min="0" step="1" value="5">
+        </div>
+        <button id="cdfButton" type="button">Calculate CDF</button>
+      </div>
+      <p id="cdfResult" class="result" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Poisson PMF Graph</h2>
+      <p class="note">
+        The bars show P(X = k). The dashed line marks the mean λ.
+        Hover over a bar to see its probability.
+      </p>
+      <div class="chart-wrap">
+        <canvas id="poissonChart"></canvas>
+      </div>
+      <p id="chartMessage" aria-live="polite"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Compare λ = 2, 6 and 10</h2>
+      <p>Compare how the event rate changes the shape and position of the distribution.</p>
+      <div class="chart-wrap">
+        <canvas id="comparisonChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const lambdaInput = document.getElementById("lambda");
+    const pmfInput = document.getElementById("pmfK");
+    const cdfInput = document.getElementById("cdfK");
+
+    let poissonChart = null;
+    let comparisonChart = null;
+
+    function validLambda() {
+      const lambda = Number(lambdaInput.value);
+      if (lambdaInput.value.trim() === "" ||
+          !Number.isFinite(lambda) || lambda < 0 || lambda > 30) {
+        throw new Error("Enter λ between 0 and 30.");
+      }
+      return lambda;
+    }
+
+    function validK(input) {
+      const raw = input.value;
+      const k = Number(raw);
+      if (raw.trim() === "" || !Number.isInteger(k) || k < 0) {
+        throw new Error("Enter a non-negative whole number for k.");
+      }
+      return k;
+    }
+
+    // P(X = k) = exp(-λ) × λ^k / k!
+    // Recursive calculation avoids directly computing a huge factorial.
+    function poissonPMF(k, lambda) {
+      if (lambda === 0) return k === 0 ? 1 : 0;
+
+      let probability = Math.exp(-lambda);
+      for (let i = 1; i <= k; i++) {
+        probability *= lambda / i;
+      }
+      return probability;
+    }
+
+    function poissonCDF(k, lambda) {
+      let total = 0;
+      let probability = Math.exp(-lambda);
+
+      total = probability;
+      for (let i = 1; i <= k; i++) {
+        probability *= lambda / i;
+        total += probability;
+      }
+      return Math.min(1, total);
+    }
+
+    // Draw the mean line between categories when λ is not an integer.
+    const meanLinePlugin = {
+      id: "poissonMeanLine",
+      afterDraw(chart, args, options) {
+        if (options.mean === undefined) return;
+
+        const xScale = chart.scales.x;
+        const yScale = chart.scales.y;
+        if (!xScale || !yScale) return;
+
+        const mean = options.mean;
+        const lower = Math.floor(mean);
+        const upper = Math.ceil(mean);
+        const x1 = xScale.getPixelForValue(lower);
+        const x2 = xScale.getPixelForValue(upper);
+        const x = lower === upper
+          ? x1
+          : x1 + (x2 - x1) * (mean - lower);
+
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.setLineDash([7, 5]);
+        ctx.strokeStyle = "#e63946";
+        ctx.lineWidth = 2;
+        ctx.moveTo(x, yScale.top);
+        ctx.lineTo(x, yScale.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#e63946";
+        ctx.font = "12px sans-serif";
+        ctx.fillText("Mean = " + mean, Math.min(x + 5, xScale.right - 85),
+                     yScale.top + 14);
+        ctx.restore();
+      }
+    };
+
+    Chart.register(meanLinePlugin);
+
+    function chartOptions(mean) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        poissonMeanLine: { mean },
+        interaction: { mode: "nearest", intersect: true },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: items => "X = " + items[0].label,
+              label: item =>
+                "P(X=" + item.label + ") = " + item.raw.toFixed(4)
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: "category",
+            title: { display: true, text: "Number of events X" }
+          },
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: "Probability P(X)" }
+          }
+        }
+      };
+    }
+
+    function updateMainChart(lambda) {
+      const maxK = Math.min(50, Math.max(15, Math.ceil(lambda + 5 * Math.sqrt(lambda) + 5)));
+      const labels = Array.from({ length: maxK + 1 }, (_, k) => String(k));
+      const values = labels.map(label => poissonPMF(Number(label), lambda));
+
+      if (poissonChart) poissonChart.destroy();
+
+      poissonChart = new Chart(document.getElementById("poissonChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "P(X = k)",
+            data: values,
+            backgroundColor: "rgba(54, 89, 201, 0.7)",
+            borderColor: "#3659c9",
+            borderWidth: 1
+          }]
+        },
+        options: chartOptions(lambda)
+      });
+
+      document.getElementById("chartMessage").textContent =
+        "Showing event counts from 0 to " + maxK + ".";
+    }
+
+    function updateComparisonChart() {
+      const labels = Array.from({ length: 26 }, (_, k) => String(k));
+      const rates = [2, 6, 10];
+
+      if (comparisonChart) comparisonChart.destroy();
+
+      comparisonChart = new Chart(document.getElementById("comparisonChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: rates.map((lambda, index) => ({
+            label: "λ = " + lambda,
+            data: labels.map(k => poissonPMF(Number(k), lambda)),
+            borderColor: ["#d94841", "#3659c9", "#2a9d70"][index],
+            backgroundColor: "transparent",
+            borderWidth: 2,
+            pointRadius: 2,
+            tension: 0
+          }))
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            tooltip: {
+              callbacks: {
+                title: items => "X = " + items[0].label,
+                label: item => item.dataset.label + ": " + item.raw.toFixed(4)
+              }
+            }
+          },
+          scales: {
+            x: { title: { display: true, text: "Number of events X" } },
+            y: {
+              beginAtZero: true,
+              title: { display: true, text: "Probability P(X)" }
+            }
+          }
+        }
+      });
+    }
+
+    function updateDistribution() {
+      try {
+        const lambda = validLambda();
+
+        document.getElementById("mean").textContent = lambda.toFixed(4);
+        document.getElementById("variance").textContent = lambda.toFixed(4);
+        document.getElementById("sd").textContent = Math.sqrt(lambda).toFixed(4);
+        document.getElementById("parameterMessage").textContent =
+          "Distribution updated with λ = " + lambda + ".";
+
+        updateMainChart(lambda);
+        calculatePMF();
+        calculateCDF();
+      } catch (error) {
+        document.getElementById("parameterMessage").textContent = error.message;
+      }
+    }
+
+    function calculatePMF() {
+      const output = document.getElementById("pmfResult");
+      try {
+        const lambda = validLambda();
+        const k = validK(pmfInput);
+        output.textContent =
+          "P(X = " + k + ") = " + poissonPMF(k, lambda).toFixed(6);
+      } catch (error) {
+        output.textContent = error.message;
+      }
+    }
+
+    function calculateCDF() {
+      const output = document.getElementById("cdfResult");
+      try {
+        const lambda = validLambda();
+        const k = validK(cdfInput);
+        const atMost = poissonCDF(k, lambda);
+        output.textContent =
+          "P(X ≤ " + k + ") = " + atMost.toFixed(6) +
+          " | P(X > " + k + ") = " + (1 - atMost).toFixed(6);
+      } catch (error) {
+        output.textContent = error.message;
+      }
+    }
+
+    document.getElementById("updateButton").addEventListener("click", updateDistribution);
+    document.getElementById("pmfButton").addEventListener("click", calculatePMF);
+    document.getElementById("cdfButton").addEventListener("click", calculateCDF);
+
+    lambdaInput.addEventListener("change", updateDistribution);
+    pmfInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") calculatePMF();
+    });
+    cdfInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") calculateCDF();
+    });
+
+    updateDistribution();
+    updateComparisonChart();
+  </script>
+</body>
+</html>
