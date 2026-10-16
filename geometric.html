@@ -4,24 +4,379 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Geometric Distribution</title>
+    <title>Geometric Distribution | SDV Lab</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .geo-container {
+            max-width: 1100px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+        .geo-card {
+            background: white;
+            padding: 22px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.07);
+        }
+        .geo-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: end;
+        }
+        .geo-controls label {
+            display: block;
+            margin-bottom: 7px;
+        }
+        .geo-controls input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            width: 180px;
+            max-width: 100%;
+        }
+        .geo-container button {
+            background: #263f68;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 11px 16px;
+            cursor: pointer;
+        }
+        .geo-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 14px;
+        }
+        .geo-stat {
+            border-left: 4px solid #4269a5;
+            border-radius: 8px;
+            background: #f5f7fc;
+            padding: 18px;
+            overflow-wrap: anywhere;
+        }
+        .geo-stat strong {
+            display: block;
+            font-size: 1.3rem;
+            margin-top: 12px;
+            color: #263f68;
+        }
+        .geo-result {
+            font-weight: 600;
+            margin-top: 16px;
+            overflow-wrap: anywhere;
+        }
+        .geo-chart {
+            height: 350px;
+            position: relative;
+        }
+        .geo-note {
+            line-height: 1.6;
+        }
+        .geo-error {
+            color: #b42318;
+        }
+    </style>
 </head>
 <body>
-<header>
-    <h1>Discrete Probability Distributions</h1>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="binomial.html">Binomial</a>
-        <a href="poisson.html">Poisson</a>
-        <a href="geometric.html" class="active">Geometric</a>
-    </nav>
-</header>
-<main class="container">
-    <h2>Geometric Distribution</h2>
-    <p>This module is coming soon. It will cover the number of trials needed to obtain the first success.</p>
-</main>
-<footer><p>SDV Lab | AIML Laboratory</p></footer>
+    <header>
+        <h1>Discrete Probability Distributions</h1>
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="binomial.html">Binomial</a>
+            <a href="poisson.html">Poisson</a>
+            <a href="geometric.html" class="active">Geometric</a>
+        </nav>
+    </header>
+
+    <main class="geo-container">
+        <h2>Geometric Distribution</h2>
+        <p>
+            Explore the probability that the first success occurs on a
+            particular trial, assuming independent trials with constant
+            success probability.
+        </p>
+
+        <section class="geo-card">
+            <h2>Distribution Parameters</h2>
+            <div class="geo-controls">
+                <div>
+                    <label for="geoP">Probability of success (p)</label>
+                    <input id="geoP" type="number" min="0.001" max="1"
+                           step="0.01" value="0.35">
+                </div>
+                <button id="geoUpdate" type="button">Update Parameters</button>
+            </div>
+            <p id="geoMessage" class="geo-result" aria-live="polite">
+                Default p = 0.35
+            </p>
+            <p class="geo-note">
+                Here X counts the trial number of the first success.
+                Therefore, X starts at 1, not 0.
+            </p>
+        </section>
+
+        <section class="geo-card">
+            <h2>Geometric Statistics</h2>
+            <div class="geo-stats">
+                <div class="geo-stat">Mean (1/p)<strong id="geoMean">2.8571</strong></div>
+                <div class="geo-stat">Variance<strong id="geoVariance">5.3061</strong></div>
+                <div class="geo-stat">Standard deviation<strong id="geoSD">2.3035</strong></div>
+            </div>
+        </section>
+
+        <section class="geo-card">
+            <h2>PMF Calculator</h2>
+            <p>Calculate the probability that the first success occurs on trial k.</p>
+            <div class="geo-controls">
+                <div>
+                    <label for="geoPMFK">Trial number (k)</label>
+                    <input id="geoPMFK" type="number" min="1" step="1" value="3">
+                </div>
+                <button id="geoPMFButton" type="button">Calculate PMF</button>
+            </div>
+            <p id="geoPMFResult" class="geo-result" aria-live="polite"></p>
+            <p class="geo-note">Formula: P(X = k) = (1 − p)<sup>k−1</sup> p</p>
+        </section>
+
+        <section class="geo-card">
+            <h2>CDF Calculator</h2>
+            <p>Calculate the probability that the first success occurs by trial k.</p>
+            <div class="geo-controls">
+                <div>
+                    <label for="geoCDFK">Trial number (k)</label>
+                    <input id="geoCDFK" type="number" min="1" step="1" value="3">
+                </div>
+                <button id="geoCDFButton" type="button">Calculate CDF</button>
+            </div>
+            <p id="geoCDFResult" class="geo-result" aria-live="polite"></p>
+            <p class="geo-note">Formula: P(X ≤ k) = 1 − (1 − p)<sup>k</sup></p>
+        </section>
+
+        <section class="geo-card">
+            <h2>Geometric PMF Graph</h2>
+            <p class="geo-note">
+                Hover over a bar to view the probability. The dashed line
+                indicates the mean number of trials.
+            </p>
+            <div class="geo-chart">
+                <canvas id="geoChart"></canvas>
+            </div>
+            <p id="geoChartMessage" aria-live="polite"></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>SDV Lab | AIML Laboratory</p>
+    </footer>
+
+    <script>
+        const geoP = document.getElementById("geoP");
+        const geoPMFK = document.getElementById("geoPMFK");
+        const geoCDFK = document.getElementById("geoCDFK");
+        let geoChart = null;
+
+        function getGeoP() {
+            const raw = geoP.value;
+            const p = Number(raw);
+            if (raw.trim() === "" || !Number.isFinite(p) || p <= 0 || p > 1) {
+                throw new Error("Enter p greater than 0 and at most 1.");
+            }
+            return p;
+        }
+
+        function getGeoK(input) {
+            const raw = input.value;
+            const k = Number(raw);
+            if (raw.trim() === "" || !Number.isInteger(k) || k < 1) {
+                throw new Error("Enter a positive whole number for k (at least 1).");
+            }
+            return k;
+        }
+
+        function geoPMF(k, p) {
+            return Math.pow(1 - p, k - 1) * p;
+        }
+
+        function geoCDF(k, p) {
+            return 1 - Math.pow(1 - p, k);
+        }
+
+        const geoMeanLinePlugin = {
+            id: "geoMeanLine",
+            afterDraw(chart, args, options) {
+                if (options.mean === undefined) return;
+
+                const x = chart.scales.x;
+                const y = chart.scales.y;
+                if (!x || !y) return;
+
+                const mean = options.mean;
+                const lower = Math.floor(mean);
+                const upper = Math.ceil(mean);
+                const x1 = x.getPixelForValue(String(lower));
+                const x2 = x.getPixelForValue(String(upper));
+                const position = lower === upper
+                    ? x1
+                    : x1 + (x2 - x1) * (mean - lower);
+
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.beginPath();
+                ctx.setLineDash([7, 5]);
+                ctx.strokeStyle = "#e63946";
+                ctx.lineWidth = 2;
+                ctx.moveTo(position, y.top);
+                ctx.lineTo(position, y.bottom);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = "#e63946";
+                ctx.font = "12px sans-serif";
+                ctx.fillText("Mean = " + mean.toFixed(2),
+                    Math.min(position + 5, x.right - 90), y.top + 14);
+                ctx.restore();
+            }
+        };
+
+        Chart.register(geoMeanLinePlugin);
+
+        function calculateGeoPMF() {
+            const output = document.getElementById("geoPMFResult");
+            try {
+                const p = getGeoP();
+                const k = getGeoK(geoPMFK);
+                output.classList.remove("geo-error");
+                output.textContent = "P(X = " + k + ") = " +
+                    geoPMF(k, p).toFixed(6);
+            } catch (error) {
+                output.classList.add("geo-error");
+                output.textContent = error.message;
+            }
+        }
+
+        function calculateGeoCDF() {
+            const output = document.getElementById("geoCDFResult");
+            try {
+                const p = getGeoP();
+                const k = getGeoK(geoCDFK);
+                const cumulative = geoCDF(k, p);
+                output.classList.remove("geo-error");
+                output.textContent =
+                    "P(X ≤ " + k + ") = " + cumulative.toFixed(6) +
+                    " | P(X > " + k + ") = " +
+                    (1 - cumulative).toFixed(6);
+            } catch (error) {
+                output.classList.add("geo-error");
+                output.textContent = error.message;
+            }
+        }
+
+        function updateGeoChart(p) {
+            // Plot up to 25 trials or until the remaining tail probability is tiny.
+            let maxK = 25;
+            if (p < 1) {
+                const tailLimit = 0.001;
+                const needed = Math.ceil(Math.log(tailLimit) / Math.log(1 - p));
+                if (Number.isFinite(needed)) {
+                    maxK = Math.max(1, Math.min(100, needed));
+                }
+            }
+
+            const labels = Array.from({ length: maxK }, (_, i) => String(i + 1));
+            const values = labels.map(k => geoPMF(Number(k), p));
+            const mean = 1 / p;
+
+            if (geoChart) geoChart.destroy();
+
+            geoChart = new Chart(document.getElementById("geoChart"), {
+                type: "bar",
+                data: {
+                    labels,
+                    datasets: [{
+                        label: "P(X = k)",
+                        data: values,
+                        backgroundColor: "rgba(54, 89, 201, 0.72)",
+                        borderColor: "#3659c9",
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    geoMeanLine: { mean },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                title: items => "X = " + items[0].label,
+                                label: item => "P(X=" + item.label + ") = " +
+                                    item.raw.toFixed(4)
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: "Trial number of first success (X)"
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: "Probability P(X)"
+                            }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById("geoChartMessage").textContent =
+                "Showing trials 1 to " + maxK +
+                ". The remaining probability beyond this range may be small but is not necessarily zero.";
+        }
+
+        function updateGeoDistribution() {
+            const message = document.getElementById("geoMessage");
+            try {
+                const p = getGeoP();
+                document.getElementById("geoMean").textContent =
+                    (1 / p).toFixed(4);
+                document.getElementById("geoVariance").textContent =
+                    ((1 - p) / (p * p)).toFixed(4);
+                document.getElementById("geoSD").textContent =
+                    (Math.sqrt(1 - p) / p).toFixed(4);
+
+                message.classList.remove("geo-error");
+                message.textContent = "Selected probability p = " + p;
+                updateGeoChart(p);
+                calculateGeoPMF();
+                calculateGeoCDF();
+            } catch (error) {
+                message.classList.add("geo-error");
+                message.textContent = error.message;
+            }
+        }
+
+        document.getElementById("geoUpdate")
+            .addEventListener("click", updateGeoDistribution);
+        document.getElementById("geoPMFButton")
+            .addEventListener("click", calculateGeoPMF);
+        document.getElementById("geoCDFButton")
+            .addEventListener("click", calculateGeoCDF);
+
+        geoP.addEventListener("change", updateGeoDistribution);
+        geoPMFK.addEventListener("keydown", e => {
+            if (e.key === "Enter") calculateGeoPMF();
+        });
+        geoCDFK.addEventListener("keydown", e => {
+            if (e.key === "Enter") calculateGeoCDF();
+        });
+
+        updateGeoDistribution();
+    </script>
 </body>
 </html>
-```
