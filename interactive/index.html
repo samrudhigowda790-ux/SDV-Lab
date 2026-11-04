@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Interactive learning modules for continuous probability distributions and industry applications.">
+  <title>ProbLearn | Continuous Probability Distributions</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#home"><span class="brand-mark">P</span><span>Prob<span class="brand-accent">Learn</span></span></a>
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    <nav class="nav" id="nav">
+      <a href="#home">Home</a>
+      <a href="#normal">Normal</a>
+      <a href="#exponential">Exponential</a>
+      <a href="#clt">Central Limit Theorem</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-content">
+        <span class="eyebrow light">AIML LABORATORY • INTERACTIVE LEARNING</span>
+        <h1>Continuous Probability<br><span>Distributions</span></h1>
+        <p>Connect statistical concepts with real industry problems. Change the inputs, explore the graphs and understand what the results mean.</p>
+        <a class="button button-primary" href="#modules">Explore the modules <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <div class="curve-card"><span>Probability density</span><svg viewBox="0 0 300 150"><path d="M12 130 C70 130 85 20 150 20 S230 130 288 130" fill="none" stroke="#7dd3fc" stroke-width="4"/><path d="M12 130 C70 130 85 20 150 20 S230 130 288 130 L288 130 L12 130Z" fill="#38bdf8" opacity=".13"/></svg><div class="curve-axis"></div></div>
+        <div class="floating-chip chip-a">μ · mean</div><div class="floating-chip chip-b">σ · spread</div>
+      </div>
+    </section>
+
+    <section class="intro section-wrap">
+      <span class="eyebrow">LEARN BY DOING</span>
+      <h2>Statistics in the real world</h2>
+      <p>Probability distributions describe uncertainty. Engineers use them to monitor quality, cloud teams use them to understand traffic, and operations teams use sampling to estimate performance.</p>
+    </section>
+
+    <section class="modules section-wrap" id="modules">
+      <div class="section-heading"><div><span class="eyebrow">YOUR LEARNING PATH</span><h2>Explore the modules</h2></div><p>Choose a topic to open its calculator.</p></div>
+      <div class="module-grid">
+        <a class="module-tile" href="#normal"><span class="tile-icon blue">⌁</span><span class="tile-no">MODULE 01</span><h3>Normal Distribution</h3><p>Manufacturing quality control</p><span class="tile-link">Open calculator ↗</span></a>
+        <a class="module-tile" href="#exponential"><span class="tile-icon purple">◷</span><span class="tile-no">MODULE 02</span><h3>Exponential Distribution</h3><p>Cloud request inter-arrival time</p><span class="tile-link">Open calculator ↗</span></a>
+        <a class="module-tile" href="#clt"><span class="tile-icon green">▥</span><span class="tile-no">MODULE 03</span><h3>Central Limit Theorem</h3><p>Warehouse processing time</p><span class="tile-link">Open calculator ↗</span></a>
+      </div>
+    </section>
+
+    <section class="lesson-section" id="normal">
+      <div class="section-wrap">
+        <div class="lesson-heading"><span class="module-pill">MODULE 01 · NORMAL DISTRIBUTION</span><h2>Manufacturing Quality Control</h2><p>Are manufactured components staying within their required dimensions?</p></div>
+        <div class="problem-banner"><span class="problem-icon">⚙</span><div><strong>Industry problem</strong><p>A factory manufactures components whose measured diameters vary around a target. The quality team uses a normal model to estimate the proportion that meet specification and the proportion that may be defective.</p></div></div>
+        <div class="workspace">
+          <div class="control-panel">
+            <div class="panel-title"><div><span class="eyebrow">SET YOUR VALUES</span><h3>Distribution inputs</h3></div><button class="text-button" id="normalReset">Reset example</button></div>
+            <div class="field-grid">
+              <label class="field">Mean diameter (μ)<span class="unit">mm</span><input id="nMean" type="number" value="10" step="any"></label>
+              <label class="field">Standard deviation (σ)<span class="unit">mm</span><input id="nSd" type="number" value="0.05" min="0.000001" step="any"></label>
+              <label class="field">Lower specification limit<span class="unit">mm</span><input id="nLower" type="number" value="9.9" step="any"></label>
+              <label class="field">Upper specification limit<span class="unit">mm</span><input id="nUpper" type="number" value="10.1" step="any"></label>
+            </div>
+            <p class="hint">All values are editable. Use the same unit for the mean and both limits; standard deviation must be greater than zero.</p>
+            <div class="formula-box"><span class="eyebrow">NORMAL MODEL</span><div>f(x) = <span class="frac">1 / (σ√2π)</span> e<sup>−(x−μ)² / 2σ²</sup></div><small>Probability over an interval is the area under the density curve.</small></div>
+          </div>
+          <div class="results-panel">
+            <div class="panel-title"><div><span class="eyebrow">LIVE RESULTS</span><h3>Quality analysis</h3></div><span class="live-dot">Updating live</span></div>
+            <div class="metric-grid">
+              <article class="metric metric-good"><span>Within specification</span><strong id="nWithin">95.45%</strong><small>Acceptable products</small></article>
+              <article class="metric metric-warn"><span>Below lower limit</span><strong id="nBelow">2.28%</strong><small>Undersized products</small></article>
+              <article class="metric metric-warn"><span>Above upper limit</span><strong id="nAbove">2.28%</strong><small>Oversized products</small></article>
+              <article class="metric"><span>Expected defective</span><strong id="nDefect">4.55%</strong><small>Below + above limits</small></article>
+            </div>
+            <div class="chart-card"><div class="chart-title"><strong>Normal distribution curve</strong><span>Shaded tails = defective region</span></div><canvas id="normalChart" height="230" role="img" aria-label="Normal distribution curve with specification limits"></canvas><div class="chart-legend"><span><i class="dot dot-good"></i> Within limits</span><span><i class="dot dot-bad"></i> Outside limits</span><span><i class="dot dot-mean"></i> Mean</span></div></div>
+            <p class="interpretation" id="normalInterpretation" aria-live="polite">The model estimates the proportion of components within specification.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lesson-section alt-section" id="exponential">
+      <div class="section-wrap">
+        <div class="lesson-heading"><span class="module-pill purple-pill">MODULE 02 · EXPONENTIAL DISTRIBUTION</span><h2>Cloud Request Inter-arrival Time</h2><p>How long might a cloud server wait between incoming requests?</p></div>
+        <div class="problem-banner"><span class="problem-icon purple-icon">☁</span><div><strong>Industry problem</strong><p>A cloud service receives user requests over time. If requests arrive at a steady average rate, an exponential model can describe the waiting time between consecutive requests (under a Poisson-arrival assumption).</p></div></div>
+        <div class="workspace">
+          <div class="control-panel">
+            <div class="panel-title"><div><span class="eyebrow">SET YOUR VALUES</span><h3>Arrival parameters</h3></div><button class="text-button" id="expReset">Reset example</button></div>
+            <div class="field-grid">
+              <label class="field">Arrival rate (λ)<span class="unit">requests / second</span><input id="eRate" type="number" value="2" min="0.000001" step="any"></label>
+              <label class="field">Waiting time (t)<span class="unit">seconds</span><input id="eTime" type="number" value="1" min="0" step="any"></label>
+            </div>
+            <p class="hint">The rate must be positive. The waiting time must be zero or greater. The mean waiting time is 1/λ.</p>
+            <div class="formula-box"><span class="eyebrow">EXPONENTIAL MODEL</span><div>f(t) = λe<sup>−λt</sup>, &nbsp; t ≥ 0</div><small>F(t) = P(T ≤ t) = 1 − e<sup>−λt</sup></small></div>
+          </div>
+          <div class="results-panel">
+            <div class="panel-title"><div><span class="eyebrow">LIVE RESULTS</span><h3>Request timing analysis</h3></div><span class="live-dot">Updating live</span></div>
+            <div class="metric-grid">
+              <article class="metric metric-purple"><span>Mean waiting time</span><strong id="eMean">0.50 s</strong><small>1 / arrival rate</small></article>
+              <article class="metric"><span>Probability by t</span><strong id="eBy">86.47%</strong><small>P(T ≤ t)</small></article>
+              <article class="metric"><span>Probability after t</span><strong id="eAfter">13.53%</strong><small>P(T &gt; t)</small></article>
+              <article class="metric"><span>Density at t</span><strong id="eDensity">0.2707</strong><small>f(t), per second</small></article>
+            </div>
+            <div class="chart-card"><div class="chart-title"><strong>Exponential density curve</strong><span>Marker shows selected waiting time</span></div><canvas id="expChart" height="230" role="img" aria-label="Exponential probability density curve"></canvas></div>
+            <p class="interpretation" id="expInterpretation" aria-live="polite">The probability of a request arriving by the selected time is shown above.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="lesson-section" id="clt">
+      <div class="section-wrap">
+        <div class="lesson-heading"><span class="module-pill green-pill">MODULE 03 · CENTRAL LIMIT THEOREM</span><h2>Warehouse Processing Time</h2><p>How reliably can a warehouse estimate its average order-processing time?</p></div>
+        <div class="problem-banner"><span class="problem-icon green-icon">▦</span><div><strong>Industry problem</strong><p>Individual order-processing times vary. By repeatedly taking random samples, a warehouse can study sample averages. The Central Limit Theorem says that, under suitable conditions, the distribution of sample means becomes approximately normal as sample size grows.</p></div></div>
+        <div class="workspace">
+          <div class="control-panel">
+            <div class="panel-title"><div><span class="eyebrow">SET YOUR VALUES</span><h3>Population and sample</h3></div><button class="text-button" id="cltReset">Reset example</button></div>
+            <div class="field-grid">
+              <label class="field">Population mean (μ)<span class="unit">minutes</span><input id="cMean" type="number" value="30" step="any"></label>
+              <label class="field">Population standard deviation (σ)<span class="unit">minutes</span><input id="cSd" type="number" value="8" min="0.000001" step="any"></label>
+              <label class="field">Sample size (n)<span class="unit">orders</span><input id="cN" type="number" value="36" min="1" step="1"></label>
+              <label class="field">Lower sample-mean bound<span class="unit">minutes</span><input id="cLower" type="number" value="27" step="any"></label>
+              <label class="field">Upper sample-mean bound<span class="unit">minutes</span><input id="cUpper" type="number" value="33" step="any"></label>
+            </div>
+            <p class="hint">This calculator uses the normal approximation to the sampling distribution of the mean. A larger sample generally makes the approximation more reliable.</p>
+            <div class="formula-box"><span class="eyebrow">SAMPLING DISTRIBUTION</span><div>SE = σ / √n</div><div class="formula-secondary">Z = (X̄ − μ) / SE</div><small>SE is the standard error of the sample mean.</small></div>
+          </div>
+          <div class="results-panel">
+            <div class="panel-title"><div><span class="eyebrow">LIVE RESULTS</span><h3>Sampling analysis</h3></div><span class="live-dot">Updating live</span></div>
+            <div class="metric-grid">
+              <article class="metric metric-green"><span>Standard error</span><strong id="cSE">1.33 min</strong><small>σ / √n</small></article>
+              <article class="metric"><span>Probability in range</span><strong id="cWithin">97.44%</strong><small>Lower ≤ X̄ ≤ upper</small></article>
+              <article class="metric"><span>Below lower bound</span><strong id="cBelow">1.22%</strong><small>P(X̄ &lt; lower)</small></article>
+              <article class="metric"><span>Above upper bound</span><strong id="cAbove">1.22%</strong><small>P(X̄ &gt; upper)</small></article>
+            </div>
+            <div class="chart-card"><div class="chart-title"><strong>Sampling distribution of the mean</strong><span>Approximate normal curve</span></div><canvas id="cltChart" height="230" role="img" aria-label="Sampling distribution curve with selected bounds"></canvas><div class="chart-legend"><span><i class="dot dot-good"></i> Selected range</span><span><i class="dot dot-bad"></i> Outside range</span><span><i class="dot dot-mean"></i> Population mean</span></div></div>
+            <p class="interpretation" id="cltInterpretation" aria-live="polite">The sampling distribution is centered at the population mean, with spread measured by the standard error.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="takeaway section-wrap"><span class="eyebrow light">KEEP EXPLORING</span><h2>Change a value. See the probability change.</h2><p>Try different inputs in each module and compare how the shape and spread of a distribution affect real-world decisions.</p><a href="#modules" class="button button-light">Back to modules ↑</a></section>
+  </main>
+
+  <footer><a class="brand footer-brand" href="#home"><span class="brand-mark">P</span><span>Prob<span class="brand-accent">Learn</span></span></a><p>Continuous Probability Distributions: Industry Applications</p><p class="footer-small">Undergraduate AIML Laboratory Project · Built with HTML, CSS and JavaScript</p></footer>
+  <script src="script.js"></script>
+</body>
+</html>
